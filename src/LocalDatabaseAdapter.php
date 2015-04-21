@@ -251,7 +251,7 @@ class LocalDatabaseAdapter implements AdapterInterface
      */
     public function createDir($dirname, Config $config)
     {
-        return true;
+        return ['path' => $dirname, 'type' => 'dir'];
     }
 
     /**
