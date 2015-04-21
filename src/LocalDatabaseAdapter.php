@@ -352,9 +352,21 @@ class LocalDatabaseAdapter implements AdapterInterface
         }
 
         $result = [];
+        $directories = [];
 
         foreach ($entries as $file) {
+
+            if ( ! $this->checkRecursiveParam($directory, $file, $recursive)) {
+                continue;
+            }
+
+            $directories = $this->addDirectories($file, $directories);
+
             $result[] = $this->getMetadataForFile($file);
+        }
+
+        foreach ($directories as $directory => $folder) {
+            $result[] = $this->getMetadataForDirectory($folder['path'], $folder['timestamp']);
         }
 
         return $result;
@@ -379,6 +391,8 @@ class LocalDatabaseAdapter implements AdapterInterface
     }
 
     /**
+     * returns metadata for file
+     *
      * @param \Rokde\Flysystem\Adapter\Model\FileModel $file
      *
      * @return array
@@ -390,6 +404,23 @@ class LocalDatabaseAdapter implements AdapterInterface
             'path' => $file->location,
             'timestamp' => $file->updated_at->timestamp,
             'size' => mb_strlen($file->content),
+        ];
+    }
+
+    /**
+     * returns metadata for directory
+     *
+     * @param string $path
+     * @param int $timestamp
+     *
+     * @return array
+     */
+    private function getMetadataForDirectory($path, $timestamp)
+    {
+        return [
+            'type' => 'dir',
+            'path' => $path,
+            'timestamp' => $timestamp,
         ];
     }
 
@@ -458,5 +489,69 @@ class LocalDatabaseAdapter implements AdapterInterface
         $visibility = $model->visible ? AdapterInterface::VISIBILITY_PUBLIC : AdapterInterface::VISIBILITY_PRIVATE;
 
         return compact('visibility');
+    }
+
+    /**
+     * checking recursive param
+     *
+     * returns true when recursive flag is on or the number of occurences for the directory separators has to be the
+     * same
+     *
+     * @TODO fix this quick-and-dirty solution
+     *
+     * @param string $directory
+     * @param \Rokde\Flysystem\Adapter\Model\FileModel $file
+     * @param bool $recursive
+     *
+     * @return bool
+     */
+    private function checkRecursiveParam($directory, FileModel $file, $recursive)
+    {
+        if ($recursive) {
+            return true;
+        }
+
+        return substr_count($directory, '/') !== substr_count($file->location, '/');
+    }
+
+    /**
+     * adds virtually directories from file location
+     *
+     * @TODO fix this quick-and-dirty solution
+     *
+     * @param \Rokde\Flysystem\Adapter\Model\FileModel $file
+     * @param array $directories
+     *
+     * @return array
+     */
+    private function addDirectories(FileModel $file, array $directories)
+    {
+        $directory = dirname($file->location);
+
+        if ($directory !== '.' && $directory !== '..') {
+
+            $dir = explode('/', $directory);
+
+            $prefix = '';
+            foreach ($dir as $folder) {
+                $path = $prefix . $folder;
+
+                if (array_key_exists($path, $directories)) {
+                    if ($directories[$path]['timestamp'] < $file->updated_at->timestamp) {
+                        $directories[$path]['timestamp'] = $file->updated_at->timestamp;
+                    }
+                } else {
+                    $directories[$path] = [
+                        'path' => $path,
+                        'timestamp' => $file->updated_at->timestamp,
+                    ];
+                }
+                $prefix = $folder . '/';
+            }
+
+        }
+
+
+        return $directories;
     }
 }
