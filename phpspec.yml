@@ -1,0 +1,6 @@
+suites:
+  my_suite:
+    namespace: Rokde\Flysystem\Adapter
+    psr4_prefix: Rokde\Flysystem\Adapter
+    src_path: src
+    spec_prefix: spec

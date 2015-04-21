@@ -1,0 +1,25 @@
+{
+	"name": "rokde/flysystem-local-database-adapter",
+	"description": "A flysystem adapter for storing files within your local database table.",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Robert Kummer",
+			"email": "rok@ipunkt.biz"
+		}
+	],
+	"minimum-stability": "stable",
+	"require": {
+		"php": ">=5.5",
+		"illuminate/database": "~5.0",
+		"league/flysystem": "~1.0"
+	},
+	"require-dev": {
+		"phpspec/phpspec": "~2.0"
+	},
+	"autoload": {
+		"psr-4": {
+			"Rokde\\Flysystem\\Adapter\\": "src/"
+		}
+	}
+}
