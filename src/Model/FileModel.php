@@ -30,17 +30,4 @@ class FileModel extends Model
         'content',
         'visible',
     ];
-
-    /**
-     * constructing FileModel with a given table name
-     *
-     * @param string $tableName
-     * @param array $attributes
-     */
-    public function __construct($tableName, array $attributes = [])
-    {
-        $this->table = $tableName;
-
-        parent::__construct($attributes);
-    }
 }

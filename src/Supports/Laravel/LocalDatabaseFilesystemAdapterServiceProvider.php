@@ -1,5 +1,6 @@
 <?php namespace Rokde\Flysystem\Adapter\Supports\Laravel;
 
+use Illuminate\Contracts\Foundation\Application;
 use League\Flysystem\Filesystem;
 use Rokde\Flysystem\Adapter\LocalDatabaseAdapter;
 use Rokde\Flysystem\Adapter\Model\FileModel;
@@ -22,9 +23,14 @@ class LocalDatabaseFilesystemAdapterServiceProvider extends ServiceProvider
         /** @var \Illuminate\Filesystem\FilesystemManager $filesystemManager */
         $filesystemManager = $this->app->make('Illuminate\Contracts\Filesystem\Factory');
 
-        $filesystemManager->extend('local-database', function ($app, array $config) {
+        $filesystemManager->extend('local-database', function (Application $app, array $config) {
 
-            $fileModel = new FileModel(array_get($config, 'table', 'files'));
+            //  @TODO fix to instantiate an interface binding
+
+            $modelClass = array_get($config, 'model', 'Rokde\Flysystem\Adapter\Model\FileModel');
+            $fileModel = $app->make($modelClass);
+
+            $fileModel = new FileModel($fileModel);
             $adapter = new LocalDatabaseAdapter($fileModel);
 
             return new Filesystem($adapter);
