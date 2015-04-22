@@ -16,10 +16,16 @@ class CreateFilesTable extends Migration
 
             $table->bigIncrements('id');
             $table->string('location')->unique();
-            $table->binary('content');
+            if (DB::getDriverName() !== 'mysql') {
+                $table->binary('content');
+            }
             $table->bool('visibility')->default(true);
 
         });
+
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `files` ADD `content` LONGBLOB;");
+        }
     }
 
     /**
