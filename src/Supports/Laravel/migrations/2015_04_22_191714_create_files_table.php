@@ -19,7 +19,7 @@ class CreateFilesTable extends Migration
             if (DB::getDriverName() !== 'mysql') {
                 $table->binary('content');
             }
-            $table->bool('visibility')->default(true);
+            $table->boolean('visibility')->default(true);
 
         });
 
