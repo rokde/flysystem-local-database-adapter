@@ -345,7 +345,10 @@ class LocalDatabaseAdapter implements AdapterInterface
      */
     public function listContents($directory = '', $recursive = false)
     {
-        $entries = $this->model->where('location', 'LIKE', $directory . '%')->get();
+        if ($directory === '')
+            $entries = $this->model->all();
+        else
+            $entries = $this->model->where('location', 'LIKE', $directory . '%')->get();
 
         if ($entries->count() === 0) {
             return [];
