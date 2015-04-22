@@ -1,4 +1,6 @@
-<?php namespace Rokde\Flysystem\Adapter\Supports\Laravel;
+<?php
+
+namespace Rokde\Flysystem\Adapter\Supports\Laravel;
 
 use Illuminate\Contracts\Foundation\Application;
 use League\Flysystem\Filesystem;
@@ -19,6 +21,8 @@ class LocalDatabaseFilesystemAdapterServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->publishMigrations();
+
         /** @var \Illuminate\Filesystem\FilesystemManager $filesystemManager */
         $filesystemManager = $this->app->make('Illuminate\Contracts\Filesystem\Factory');
 
@@ -42,5 +46,15 @@ class LocalDatabaseFilesystemAdapterServiceProvider extends ServiceProvider
     public function register()
     {
         // nothing to register
+    }
+
+    /**
+     * publishes migrations
+     */
+    private function publishMigrations()
+    {
+        $this->publishes([
+            realpath(__DIR__ . '/migrations') => $this->app->databasePath() . '/migrations',
+        ]);
     }
 }
