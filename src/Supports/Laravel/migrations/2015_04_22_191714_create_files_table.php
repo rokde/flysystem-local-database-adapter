@@ -20,6 +20,7 @@ class CreateFilesTable extends Migration
                 $table->binary('content');
             }
             $table->boolean('visibility')->default(true);
+            $table->timestamps();
 
         });
 
