@@ -8,11 +8,6 @@ use Prophecy\Argument;
 
 class FileModelSpec extends ObjectBehavior
 {
-    function let()
-    {
-        $this->beConstructedWith('files');
-    }
-
     function it_is_initializable()
     {
         $this->shouldHaveType('Rokde\Flysystem\Adapter\Model\FileModel');
