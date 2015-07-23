@@ -10,6 +10,11 @@ use Rokde\Flysystem\Adapter\Model\FileModel;
 class LocalDatabaseAdapter implements AdapterInterface
 {
     /**
+     * we use the slash as directory separator
+     */
+    const DIRECTORY_SEPARATOR = '/';
+
+    /**
      * internal model for communicating to the database
      *
      * @var FileModel
@@ -27,6 +32,8 @@ class LocalDatabaseAdapter implements AdapterInterface
     }
 
     /**
+     * find a FileModel by path
+     *
      * @param string $path
      *
      * @return FileModel|null
@@ -216,15 +223,33 @@ class LocalDatabaseAdapter implements AdapterInterface
     }
 
     /**
+     * sanitizes location path (adds trailing slash and adds backslashes before mysql wildcards)
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    protected function sanitizeDirectoryName($path)
+    {
+        $path = rtrim($path, self::DIRECTORY_SEPARATOR);
+
+        $sanitizedPath = addcslashes($path, '_%');
+
+        return $sanitizedPath . self::DIRECTORY_SEPARATOR;
+    }
+
+    /**
      * Delete a directory.
      *
-     * @param string $dirname
+     * @param string $directory
      *
      * @return bool
      */
-    public function deleteDir($dirname)
+    public function deleteDir($directory)
     {
-        $entries = $this->model->where('location', 'LIKE', $dirname . '%')->get();
+        $directory = $this->sanitizeDirectoryName($directory);
+
+        $entries = $this->model->where('location', 'LIKE', $directory . '%')->get();
 
         if ($entries->count() === 0) {
             return true;
@@ -244,14 +269,14 @@ class LocalDatabaseAdapter implements AdapterInterface
     /**
      * Create a directory.
      *
-     * @param string $dirname directory name
+     * @param string $directory directory name
      * @param Config $config
      *
      * @return array|false
      */
-    public function createDir($dirname, Config $config)
+    public function createDir($directory, Config $config)
     {
-        return ['path' => $dirname, 'type' => 'dir'];
+        return ['path' => $directory, 'type' => 'dir'];
     }
 
     /**
@@ -345,10 +370,12 @@ class LocalDatabaseAdapter implements AdapterInterface
      */
     public function listContents($directory = '', $recursive = false)
     {
-        if ($directory === '')
+        if ($directory === '') {
             $entries = $this->model->all();
-        else
+        } else {
+            $directory = $this->sanitizeDirectoryName($directory);
             $entries = $this->model->where('location', 'LIKE', $directory . '%')->get();
+        }
 
         if ($entries->count() === 0) {
             return [];
@@ -489,7 +516,7 @@ class LocalDatabaseAdapter implements AdapterInterface
             return false;
         }
 
-        $visibility = $model->visible ? AdapterInterface::VISIBILITY_PUBLIC : AdapterInterface::VISIBILITY_PRIVATE;
+        $visibility = $model->isVisible() ? AdapterInterface::VISIBILITY_PUBLIC : AdapterInterface::VISIBILITY_PRIVATE;
 
         return compact('visibility');
     }
@@ -514,7 +541,7 @@ class LocalDatabaseAdapter implements AdapterInterface
             return true;
         }
 
-        return substr_count($directory, '/') !== substr_count($file->location, '/');
+        return substr_count($directory, self::DIRECTORY_SEPARATOR) !== substr_count($file->location, self::DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -533,7 +560,7 @@ class LocalDatabaseAdapter implements AdapterInterface
 
         if ($directory !== '.' && $directory !== '..') {
 
-            $dir = explode('/', $directory);
+            $dir = explode(self::DIRECTORY_SEPARATOR, $directory);
 
             $prefix = '';
             foreach ($dir as $folder) {
@@ -549,7 +576,7 @@ class LocalDatabaseAdapter implements AdapterInterface
                         'timestamp' => $file->updated_at->timestamp,
                     ];
                 }
-                $prefix = $folder . '/';
+                $prefix = $folder . self::DIRECTORY_SEPARATOR;
             }
 
         }
