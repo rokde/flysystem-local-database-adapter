@@ -1,0 +1,4 @@
+# Exclude development code in stable releases
+.gitattributes export-ignore
+phpspec.yml    export-ignore
+spec           export-ignore
